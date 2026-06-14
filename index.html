@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz EAS - Uji Kualitas Perangkat Lunak</title>
+  <meta name="description" content="Latihan soal EAS Uji Kualitas Perangkat Lunak - 100 soal pilihan ganda interaktif">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- START SCREEN -->
+  <div id="startScreen" class="screen active">
+    <div class="start-container">
+      <div class="start-icon">📝</div>
+      <h1>Quiz EAS</h1>
+      <p class="subtitle">Uji Kualitas Perangkat Lunak IF-D</p>
+      <div class="start-info">
+        <div class="info-item"><span class="info-icon">📋</span><span>100 Soal Pilihan Ganda</span></div>
+        <div class="info-item"><span class="info-icon">🔄</span><span>Soal salah diulang 1x</span></div>
+        <div class="info-item"><span class="info-icon">✅</span><span>Lihat jawaban benar langsung</span></div>
+      </div>
+      <div class="mode-select">
+        <button class="btn-mode active" data-mode="all" onclick="selectMode('all')">Semua (100)</button>
+        <button class="btn-mode" data-mode="20" onclick="selectMode('20')">20 Soal</button>
+        <button class="btn-mode" data-mode="50" onclick="selectMode('50')">50 Soal</button>
+      </div>
+      <div class="shuffle-option">
+        <label class="toggle-label">
+          <input type="checkbox" id="shuffleToggle" checked>
+          <span class="toggle-slider"></span>
+          <span>Acak Urutan Soal</span>
+        </label>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Mulai Quiz →</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quizScreen" class="screen">
+    <header class="quiz-header">
+      <div class="progress-info">
+        <span id="questionCounter">1/100</span>
+        <span id="scoreDisplay">✅ 0 ❌ 0</span>
+      </div>
+      <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+    </header>
+    <main class="quiz-main">
+      <div id="retryBadge" class="retry-badge" style="display:none">🔄 Pengulangan</div>
+      <h2 id="questionText" class="question-text"></h2>
+      <div id="choicesContainer" class="choices-container"></div>
+      <div id="feedbackArea" class="feedback-area" style="display:none">
+        <div id="feedbackContent"></div>
+      </div>
+      <button id="nextBtn" class="btn-next" style="display:none" onclick="nextQuestion()">Soal Berikutnya →</button>
+    </main>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="resultScreen" class="screen">
+    <div class="result-container">
+      <div id="resultEmoji" class="result-emoji"></div>
+      <h1 id="resultTitle"></h1>
+      <div id="resultScore" class="result-score"></div>
+      <div class="result-stats">
+        <div class="stat correct"><span class="stat-num" id="statCorrect">0</span><span>Benar</span></div>
+        <div class="stat wrong"><span class="stat-num" id="statWrong">0</span><span>Salah</span></div>
+        <div class="stat retry"><span class="stat-num" id="statRetry">0</span><span>Diulang</span></div>
+      </div>
+      <div id="wrongList" class="wrong-list"></div>
+      <div class="result-actions">
+        <button class="btn-start" onclick="restartQuiz()">🔄 Ulangi Quiz</button>
+        <button class="btn-review" onclick="reviewWrong()">📖 Review Salah</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="quiz_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
