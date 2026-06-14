@@ -4,10 +4,11 @@ let currentIndex = 0;
 let correctCount = 0;
 let wrongCount = 0;
 let retryCount = 0;
-let wrongQueue = []; // soal yg salah, akan diulang 1x
+let pendingRetry = null; // soal yg salah, langsung diulang di next
 let answeredWrong = []; // record soal yg salah untuk review
 let selectedMode = 'all';
 let isRetry = false;
+let displayNum = 0; // nomor tampilan soal
 
 function selectMode(mode) {
   selectedMode = mode;
@@ -36,9 +37,10 @@ function startQuiz() {
   correctCount = 0;
   wrongCount = 0;
   retryCount = 0;
-  wrongQueue = [];
+  pendingRetry = null;
   answeredWrong = [];
   isRetry = false;
+  displayNum = 0;
 
   showScreen('quizScreen');
   renderQuestion();
@@ -54,39 +56,31 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
-function getTotalQuestions() {
-  return quizQuestions.length + wrongQueue.length;
-}
-
-function getCurrentNum() {
-  return currentIndex + 1 + (isRetry ? quizQuestions.length : 0) - (isRetry ? wrongQueue.length + 1 : 0);
-}
-
 function renderQuestion() {
   let q;
-  if (currentIndex < quizQuestions.length) {
-    q = quizQuestions[currentIndex];
-    isRetry = false;
-  } else if (wrongQueue.length > 0) {
-    q = wrongQueue.shift();
+  
+  // Jika ada soal yang harus diulang, tampilkan dulu
+  if (pendingRetry) {
+    q = pendingRetry;
+    pendingRetry = null;
     isRetry = true;
     retryCount++;
+  } else if (currentIndex < quizQuestions.length) {
+    q = quizQuestions[currentIndex];
+    isRetry = false;
   } else {
     showResults();
     return;
   }
 
-  // Update header
+  displayNum++;
   const total = quizQuestions.length;
-  const current = isRetry 
-    ? total + retryCount 
-    : currentIndex + 1;
-  const totalDisplay = total + wrongQueue.length + (isRetry ? retryCount : 0);
-  
-  document.getElementById('questionCounter').textContent = `${current} / ${totalDisplay > total ? totalDisplay : total}`;
+
+  // Update header
+  document.getElementById('questionCounter').textContent = `${displayNum} / ~${total}`;
   document.getElementById('scoreDisplay').textContent = `✅ ${correctCount}  ❌ ${wrongCount}`;
   
-  const progress = ((isRetry ? total + retryCount : currentIndex + 1) / (totalDisplay > total ? totalDisplay : total)) * 100;
+  const progress = Math.min((currentIndex / total) * 100, 100);
   document.getElementById('progressFill').style.width = progress + '%';
 
   // Retry badge
@@ -136,9 +130,9 @@ function handleAnswer(btn, selectedIdx, question) {
     // Highlight correct
     allBtns[question.correct].classList.add('correct');
     
-    // Add to retry queue (only if not already a retry)
+    // Langsung set sebagai pending retry (hanya jika bukan sudah retry)
     if (!isRetry) {
-      wrongQueue.push(question);
+      pendingRetry = question;
     }
     
     // Record for review
@@ -160,7 +154,7 @@ function handleAnswer(btn, selectedIdx, question) {
     fb.className = 'feedback-area wrong-fb';
     const msg = isRetry 
       ? `❌ <strong>Masih salah.</strong> Jawaban yang benar: <strong>${question.choices[question.correct]}</strong>`
-      : `❌ <strong>Salah!</strong> Jawaban yang benar: <strong>${question.choices[question.correct]}</strong><br>Soal ini akan diulang nanti.`;
+      : `❌ <strong>Salah!</strong> Jawaban yang benar: <strong>${question.choices[question.correct]}</strong><br>🔄 Soal ini akan langsung diulang.`;
     document.getElementById('feedbackContent').innerHTML = msg;
   }
 
@@ -172,11 +166,19 @@ function handleAnswer(btn, selectedIdx, question) {
 }
 
 function nextQuestion() {
-  if (!isRetry) {
+  // Hanya naikkan index jika bukan retry DAN tidak ada pending retry
+  // (jika ada pending retry, kita tampilkan dulu sebelum lanjut ke soal baru)
+  if (!isRetry && !pendingRetry) {
+    currentIndex++;
+  } else if (!isRetry && pendingRetry) {
+    // Jangan naikkan index, karena soal yang sama akan diulang dulu
+    // Setelah retry selesai, baru lanjut ke soal berikutnya
+  } else if (isRetry) {
+    // Retry selesai, lanjut ke soal berikutnya
     currentIndex++;
   }
   
-  if (currentIndex >= quizQuestions.length && wrongQueue.length === 0) {
+  if (currentIndex >= quizQuestions.length && !pendingRetry) {
     showResults();
   } else {
     renderQuestion();
