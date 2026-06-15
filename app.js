@@ -90,16 +90,26 @@ function renderQuestion() {
   // Question
   document.getElementById('questionText').textContent = `${q.id}. ${q.q}`;
 
-  // Choices
+  // Choices - acak urutan opsi
   const container = document.getElementById('choicesContainer');
   container.innerHTML = '';
   const labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   
-  q.choices.forEach((choice, i) => {
+  // Buat array index dan acak
+  const indices = q.choices.map((_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  // Track posisi jawaban benar setelah diacak
+  const shuffledCorrect = indices.indexOf(q.correct);
+  
+  indices.forEach((origIdx, displayIdx) => {
     const btn = document.createElement('button');
     btn.className = 'choice-btn';
-    btn.innerHTML = `<span class="choice-label">${labels[i]}</span><span class="choice-text">${choice}</span>`;
-    btn.onclick = () => handleAnswer(btn, i, q);
+    btn.innerHTML = `<span class="choice-label">${labels[displayIdx]}</span><span class="choice-text">${q.choices[origIdx]}</span>`;
+    btn.dataset.origIdx = origIdx;
+    btn.onclick = () => handleAnswer(btn, displayIdx, q, shuffledCorrect, indices);
     container.appendChild(btn);
   });
 
@@ -113,8 +123,8 @@ function renderQuestion() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function handleAnswer(btn, selectedIdx, question) {
-  const isCorrect = selectedIdx === question.correct;
+function handleAnswer(btn, selectedIdx, question, shuffledCorrect, indices) {
+  const isCorrect = selectedIdx === shuffledCorrect;
   const allBtns = document.querySelectorAll('.choice-btn');
 
   // Disable all
@@ -127,8 +137,8 @@ function handleAnswer(btn, selectedIdx, question) {
   } else {
     btn.classList.add('wrong');
     wrongCount++;
-    // Highlight correct
-    allBtns[question.correct].classList.add('correct');
+    // Highlight correct answer
+    allBtns[shuffledCorrect].classList.add('correct');
     
     // Langsung set sebagai pending retry (hanya jika bukan sudah retry)
     if (!isRetry) {
@@ -139,7 +149,7 @@ function handleAnswer(btn, selectedIdx, question) {
     answeredWrong.push({
       q: question.q,
       id: question.id,
-      selected: question.choices[selectedIdx],
+      selected: question.choices[indices[selectedIdx]],
       correct: question.choices[question.correct]
     });
   }
