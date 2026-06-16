@@ -10,6 +10,12 @@ let selectedMode = 'all';
 let isRetry = false;
 let displayNum = 0; // nomor tampilan soal
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function selectMode(mode) {
   selectedMode = mode;
   document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
@@ -107,7 +113,14 @@ function renderQuestion() {
   indices.forEach((origIdx, displayIdx) => {
     const btn = document.createElement('button');
     btn.className = 'choice-btn';
-    btn.innerHTML = `<span class="choice-label">${labels[displayIdx]}</span><span class="choice-text">${q.choices[origIdx]}</span>`;
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'choice-label';
+    labelSpan.textContent = labels[displayIdx];
+    const textSpan = document.createElement('span');
+    textSpan.className = 'choice-text';
+    textSpan.textContent = q.choices[origIdx];
+    btn.appendChild(labelSpan);
+    btn.appendChild(textSpan);
     btn.dataset.origIdx = origIdx;
     btn.onclick = () => handleAnswer(btn, displayIdx, q, shuffledCorrect, indices);
     container.appendChild(btn);
@@ -163,8 +176,8 @@ function handleAnswer(btn, selectedIdx, question, shuffledCorrect, indices) {
   } else {
     fb.className = 'feedback-area wrong-fb';
     const msg = isRetry 
-      ? `❌ <strong>Masih salah.</strong> Jawaban yang benar: <strong>${question.choices[question.correct]}</strong>`
-      : `❌ <strong>Salah!</strong> Jawaban yang benar: <strong>${question.choices[question.correct]}</strong><br>🔄 Soal ini akan langsung diulang.`;
+      ? `❌ <strong>Masih salah.</strong> Jawaban yang benar: <strong>${escapeHtml(question.choices[question.correct])}</strong>`
+      : `❌ <strong>Salah!</strong> Jawaban yang benar: <strong>${escapeHtml(question.choices[question.correct])}</strong><br>🔄 Soal ini akan langsung diulang.`;
     document.getElementById('feedbackContent').innerHTML = msg;
   }
 
@@ -225,9 +238,9 @@ function showResults() {
     const div = document.createElement('div');
     div.className = 'wrong-item';
     div.innerHTML = `
-      <div class="wq">${w.id}. ${w.q}</div>
-      <div class="wa">❌ Jawaban kamu: ${w.selected}</div>
-      <div class="wc">✅ Jawaban benar: ${w.correct}</div>
+      <div class="wq">${w.id}. ${escapeHtml(w.q)}</div>
+      <div class="wa">❌ Jawaban kamu: ${escapeHtml(w.selected)}</div>
+      <div class="wc">✅ Jawaban benar: ${escapeHtml(w.correct)}</div>
     `;
     list.appendChild(div);
   });
